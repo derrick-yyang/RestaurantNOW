@@ -76,10 +76,6 @@ function App(): JSX.Element {
     setViewRestaurant(true);
   };
 
-  const goBackToCamera = () => {
-    setViewRestaurant(false);
-  };
-
   const openGallery = () => {
     const options = {
       mediaType: 'photo', // For photos
