@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'red',
+    backgroundColor: '#9C9492',
     justifyContent: 'center',
     right: -120,
     marginHorizontal: '7%',
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 18,
-    color: 'red',
+    color: '#9C9492',
     textAlign: 'center',
     margin: 20,
   },
