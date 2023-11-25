@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { RNCamera } from 'react-native-camera';
 import {
   SafeAreaView,
@@ -7,80 +7,130 @@ import {
   View,
   StyleSheet,
   Image,
+  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { PermissionsAndroid, Platform } from 'react-native';
+import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 
 function App(): JSX.Element {
-  const cameraRef = useRef(null);
+  const cameraRef = useRef<RNCamera>(null);
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
-  const [viewConfirmedPic, setViewConfirmedPic] = useState(false); // New state for confirmed picture view
-  const [viewNext, setViewNext] = useState(false);
+  const [viewRestaurant, setViewRestaurant] = useState(false);
+  const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
+
+// Define a type for your restaurant data
+type RestaurantData = {
+  name: string;
+  description: string;
+};
+
+ useEffect(() => {
+    // Simulate fetching data from a backend
+    const fetchData = async () => {
+      // Simulated data, replace with your backend fetch logic
+      const data = {
+        name: 'Pasta Paradise',
+        description: "McDonald's is a global fast food restaurant chain that originated in the United States. It's known for its wide range of fast food items, with its most iconic products being the Big Mac (a double-decker hamburger), the Quarter Pounder, the Egg McMuffin, and its world-famous French fries. McDonald's is also recognized for its Happy Meals, which are targeted towards children and often include a small toy. The company has a distinctive logo, the Golden Arches, and is famous for its efficiency in serving food, utilizing a production line method of food preparation. Over the years, McDonald's has become a symbol of globalization and American fast food culture. It operates thousands of restaurants worldwide, offering a variety of localized menu items in different countries to cater to regional tastes.",
+      };
+
+      // Simulate a network request delay
+      setTimeout(() => setRestaurantData(data), 1000);
+    };
+
+    fetchData()
+  }, []);
+
+  const requestStoragePermission = async () => {
+    if (Platform.OS === 'android') {
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      );
+      return result === PermissionsAndroid.RESULTS.GRANTED;
+    } else {
+      const result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
+      if (result === RESULTS.GRANTED) return true;
+      if (result === RESULTS.DENIED) {
+        const requestResult = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
+        return requestResult === RESULTS.GRANTED;
+      }
+      return false;
+    }
+  };
 
   const takePicture = async () => {
     if (cameraRef.current) {
       const options = { quality: 0.5, base64: true };
-      const data = await cameraRef.current.takePictureAsync(options);
-      setCapturedUri(data.uri);
+      try {
+        const data = await cameraRef.current.takePictureAsync(options);
+        setCapturedUri(data.uri);
+      } catch (error) {
+        console.error("Error taking picture", error);
+      }
+    } else {
+      console.log('Camera is not ready');
     }
   };
 
   const retakePicture = () => {
     setCapturedUri(null);
-    setViewConfirmedPic(false); // Reset to camera view
   };
 
   const confirmPicture = () => {
     console.log('Picture confirmed:', capturedUri);
-    setViewConfirmedPic(true);
+    setViewRestaurant(true);
   };
 
   const goBackToCamera = () => {
-    setViewNext(false);
-    setViewConfirmedPic(false);
+    setViewRestaurant(false);
   };
 
-  const goToNextView = () => {
-    setViewNext(true);
-    setViewConfirmedPic(false);
+  const openGallery = () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 1,
+    };
+
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else {
+        const source = { uri: response.assets[0].uri };
+        setCapturedUri(source.uri);
+      }
+    });
   };
 
-  const goToBackView= () => {
-    setViewConfirmedPic(true);
-  };
-
-   if (viewConfirmedPic && capturedUri) {
+    if (viewRestaurant && restaurantData) {
       return (
         <SafeAreaView style={styles.container}>
+          <ScrollView style={styles.scrollView}>
 
-          <Text style={styles.infoText}>sadaadsad</Text>
+            <Image source={{ uri: capturedUri }} style={styles.restaurantImage} />
+
+            <Text style={styles.restaurantName}>{restaurantData.name}</Text>
+            <View style={styles.info}>
+              <Text style={styles.restaurantDetails}>
+                {restaurantData.description}
+              </Text>
+            </View>
+          </ScrollView>
+
           <TouchableOpacity onPress={goBackToCamera} style={styles.backButton}>
             <Text style={styles.buttonText}>Back</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={goToNextView} style={styles.navigationButton}>
-            <Text style={styles.buttonText}>Next</Text>
-          </TouchableOpacity>
-
         </SafeAreaView>
       );
     }
-
-   if (viewNext) {
-     return (
-       <SafeAreaView style={styles.container}>
-         {/* Your next view content goes here */}
-         <Text style={styles.infoText}>This is the next view</Text>
-         {/* Add a button to go back to the confirmed picture view or any other navigation */}
-         <TouchableOpacity onPress={goToBackView} style={styles.backButton}>
-           <Text style={styles.buttonText}>Back</Text>
-         </TouchableOpacity>
-       </SafeAreaView>
-     );
-   }
 
 
   return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>Take picture of unknown restaurant !!!</Text>
+          <Text style={styles.headerText}>Take a picture of the unknown restaurant !!!</Text>
         </View>
 
         {capturedUri ? (
@@ -107,6 +157,10 @@ function App(): JSX.Element {
             <TouchableOpacity onPress={takePicture} style={styles.capture}>
               <View style={styles.captureInner} />
             </TouchableOpacity>
+            <TouchableOpacity onPress={openGallery} style={styles.galleryButton}>
+              <Text style={styles.buttonText}>Gallery</Text>
+            </TouchableOpacity>
+
           </>
         )}
       </SafeAreaView>
@@ -121,123 +175,115 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: 'white',
-    padding: 20,
+    padding: 5,
     alignItems: 'center',
   },
   headerText: {
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 30,
     color: 'black',
+    textAlign:'center',
   },
   preview: {
-      width: '90%', // Set the width as a percentage of the screen width
-      height: '75%', // Adjust the height as needed
-      borderRadius: 50, // This will give you rounded corners
-      overflow: 'hidden', // This ensures that the camera view does not bleed outside the border radius
-      alignSelf: 'center', // Center the camera view horizontally
+      width: '90%',
+      height: '77%',
+      borderRadius: 50,
+      overflow: 'hidden',
+      alignSelf: 'center',
     },
   capture: {
       justifyContent: 'center',
       alignItems: 'center',
       alignSelf: 'center',
       position: 'absolute',
-      bottom: "5%", // Adjust this value to move it up from the bottom
-      marginBottom: '0%', // Adjust this value to increase the space at the bottom
+      bottom: "2%",
+      marginBottom: '0%',
 
       // Dimensions to create a circular shape for the button
       width: 70,
       height: 70,
-      borderRadius: 35, // Half of the width and height to get a perfect circle
-      backgroundColor: 'red', // Red border color
-      padding: 4, // Space for the red border
+      borderRadius: 35,
+      backgroundColor: 'red',
+      padding: 4,
     },
   captureInner: {
       width: '100%',
       height: '100%',
-      borderRadius: 32, // Slightly smaller radius for the inner circle to appear like a border
-      backgroundColor: 'white', // White inner color
+      borderRadius: 32,
+      backgroundColor: 'white',
       justifyContent: 'center',
       alignItems: 'center',
     },
-  captureIcon: {
-      width: '100%',
-      height: '100%',
-      resizeMode: 'contain', // Ensures the image scales within the button
-    },
-  captureText: {
-    fontSize: 14,
-    color: 'white',
-    },
-  capturedImage: {
-      width: '80%', // Adjust as needed
-      height: '80%', // Adjust as needed
-      borderRadius: 20,
-    },
-  centeredView: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      marginTop: 20
-    },
-
-  modalImage: {
-      width: '90%', // Set the width as a percentage of the screen width
-      height: '80%', // Adjust the height as needed
-      borderRadius: 20, // Rounded corners for the image
-     },
   buttonContainer: {
-      flexDirection: 'row', // places buttons in a row
-      justifyContent: 'center', // centers buttons horizontally
-      alignItems: 'center', // centers buttons vertically
-      alignSelf: 'center', // centers the container itself
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
       margin: '7%',
      },
   actionButton: {
       width: 100,
       height: 40,
       borderRadius: 20,
-      backgroundColor: 'red', // change as needed
+      backgroundColor: 'red',
       justifyContent: 'center',
       alignItems: 'center',
-      marginHorizontal: '7%', // adds spacing between buttons
+      marginHorizontal: '7%',
      },
   buttonText: {
       fontSize: 16,
       color: 'white',
       textAlign: 'center',
      },
-  displayImage: {
-      width: '100%', // Full width
-      height: '30%', // Adjust the height as needed, taking up half the screen
-      resizeMode: 'cover', // or 'contain' to see the whole picture without cropping
-     },
-  infoText: {
-      fontSize: 30,
-      textAlign: 'center',
-      color: 'black',
-      marginTop: '40%', // Adjust as needed for your layout
-     },
   backButton: {
       position: 'absolute',
       width: 100,
-      top: '90%', // You can adjust this value as needed
-      right: 230, // You can adjust this value as needed
-      backgroundColor: 'red', // Or any other visible color
+      top: '93%',
+      right: 150,
+      backgroundColor: 'red',
       padding: 10,
       borderRadius: 20,
      },
+  scrollView: {
+      marginBottom: 60,
+     },
+  restaurantInfo: {
+      padding: 20,
+     },
+  restaurantName: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 8,
+      color: 'black',
+     },
+  restaurantDetails: {
+      fontSize: 18,
+      color: 'black',
+     },
+  info: {
+      marginTop: 10,
+      padding: 10,
+      backgroundColor: '#f0f0f0',
+      borderRadius: 10,
+     },
+  reviewerName: {
+      fontWeight: 'bold',
+      color: 'black',
+     },
+  restaurantImage: {
+      width: '100%',
+      height: 300,
+      resizeMode: 'cover',
+  },
+  galleryButton: {
+      backgroundColor: 'red',
+      padding: 10,
+      width: 100,
+      top: '4%',
+      right: -30,
+      borderRadius: 20,
+  },
 
- // Adjust the style for the new "Next" button
-   navigationButton: {
-     position: 'absolute',
-     width: 100,
-     top: '90%', // You can adjust this value as needed
-     right: 70, // You can adjust this value as needed
-     backgroundColor: 'red', // Or any other visible color
-     padding: 10,
-     borderRadius: 20,
-     // other styles as needed
-   },
 });
 
 export default App;
