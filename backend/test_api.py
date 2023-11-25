@@ -4,7 +4,7 @@ import requests
 url = 'http://127.0.0.1:5000/process_image'  # Replace with your Flask server's URL if different
 
 # Path to the test image
-image_path = 'tamjai.jpeg'  # Replace with the path to your test image
+image_path = 'starbucks.jpeg'  # Replace with the path to your test image
 
 # Open the image in binary mode
 with open(image_path, 'rb') as image:
