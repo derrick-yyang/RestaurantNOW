@@ -62,22 +62,23 @@ def process_image():
     logging.info("Received response from GPT model: " + gpt_response.choices[0].message.content)
 
     gpt_response_content = gpt_response.choices[0].message.content.split('?')
+    response = {
+        'Name': "",
+        'Description': "",
+        'Error': ""
+    }
     if len(gpt_response_content) == 2:
         
         name, description = gpt_response_content[0], gpt_response_content[1]
 
-        response = {
-            'Name': name,
-            'Description': description
-        }
+        response['Name'] = name
+        response["Description"] = description
 
         logging.info("Response prepared: %s", response)
     else:
         logging.info("Response was not recognized by GPT")
-        response = {
-            'Error': 'Restaurant was not recognized. Please try again.'
-        }
-
+        response['Error']= 'Restaurant was not recognized. Please try again.'
+        
     return jsonify(response)
 
 # Run the server
