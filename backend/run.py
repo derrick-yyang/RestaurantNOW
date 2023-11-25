@@ -1,55 +1,61 @@
-from flask import Flask, request
-import cv2
-import pytesseract
-import numpy as np
+from flask import Flask, request, jsonify
+import base64
+from openai import OpenAI
 
 app = Flask(__name__)
 
-def preprocess_image(img):
-    # Convert the image to gray scale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # Performing OTSU threshold
-    ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
-
-    # Specify structure shape and kernel size.
-    rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18))
-
-    # Applying dilation on the threshold image
-    dilation = cv2.dilate(thresh1, rect_kernel, iterations = 1)
-
-    # Finding contours
-    contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-
-    return contours
+# Function to encode the image
+def encode_image(image):
+    return base64.b64encode(image.read()).decode('utf-8')
 
 @app.route('/process_image', methods=['POST'])
 def process_image():
-    file = request.files['image']
+    if 'image' not in request.files:
+        return "No image provided", 400
 
-    # Convert the file to an opencv image.
-    img = cv2.imdecode(np.fromstring(file.read(), np.uint8), cv2.IMREAD_UNCHANGED)
+    image = request.files['image']
 
-    # Preprocess the image to get the contours
-    contours = preprocess_image(img)
+    # Encode the image
+    base64_image = encode_image(image)
 
-    # Looping through the identified contours
-    # Then rectangular part is cropped and passed on to pytesseract for extracting text from it
-    # Extracted text is then written into the text file
-    restaurant_name = ''
-    for cnt in contours:
-        x, y, w, h = cv2.boundingRect(cnt)
+    client = OpenAI()
 
-        # Cropping the text block for giving input to OCR
-        cropped = img[y:y + h, x:x + w]
+    # Define a chat prompt (prompt engineering)
+    chat_prompt = """
+    What restaurant is this image? Answer by saying the name of the restaurant, then a description of what it is and what it's known for.
+    Split the name and description a question mark (?) but have it on the same line.
+    """
+    gpt_model = "gpt-4-vision-preview"
 
-        # Apply OCR to the cropped image
-        text = pytesseract.image_to_string(cropped)
+    gpt_response = client.chat.completions.create(
+        model=gpt_model,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"{chat_prompt}"
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}"
+                        }
+                    }
+                ]
+            }
+        ],
+        max_tokens=150,
+    )
 
-        # Assuming the restaurant name would be the largest text block in the image
-        if len(text) > len(restaurant_name):
-            restaurant_name = text
+    name, description = gpt_response.choices[0].message.content.split('?')
 
-    return restaurant_name
+    response = {
+        'Name' : name,
+        'Description': description
+    }
+
+    return jsonify(response)
 
 app.run(debug=True)
