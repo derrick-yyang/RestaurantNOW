@@ -4,7 +4,7 @@ import requests
 url = 'http://localhost:5000/process_image'  # Replace with the appropriate URL
 
 # Path to the image file you want to send
-image_path = 'test_image.jpeg'  # Replace with the actual path to your image file
+image_path = 'starbucks.jpeg'  # Replace with the actual path to your image file
 
 # Create a POST request with the image file
 files = {'image': open(image_path, 'rb')}
