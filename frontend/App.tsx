@@ -37,7 +37,7 @@ function App(): JSX.Element {
         name: 'Pasta Paradise',
         description:
           "McDonald's is a global fast food restaurant chain that originated in the United States. It's known for its wide range of fast food items, with its most iconic products being the Big Mac (a double-decker hamburger), the Quarter Pounder, the Egg McMuffin, and its world-famous French fries. McDonald's is also recognized for its Happy Meals, which are targeted towards children and often include a small toy. The company has a distinctive logo, the Golden Arches, and is famous for its efficiency in serving food, utilizing a production line method of food preparation. Over the years, McDonald's has become a symbol of globalization and American fast food culture. It operates thousands of restaurants worldwide, offering a variety of localized menu items in different countries to cater to regional tastes.",
-        error: 'Restaurant was not recognized. Please try again.',
+        error: '',
       };
 
       setTimeout(() => {
