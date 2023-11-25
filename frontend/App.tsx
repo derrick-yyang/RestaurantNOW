@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {RNCamera} from 'react-native-camera';
 import {
   SafeAreaView,
@@ -13,6 +13,7 @@ import {
   ImageLibraryOptions,
   launchImageLibrary,
 } from 'react-native-image-picker';
+import {Platform} from 'react-native';
 
 function App(): JSX.Element {
   const cameraRef = useRef<RNCamera>(null);
@@ -28,29 +29,6 @@ function App(): JSX.Element {
     description: string;
     error: string;
   };
-
-  useEffect(() => {
-    setIsError(false);
-
-    const fetchData = async () => {
-      const data = {
-        name: 'Pasta Paradise',
-        description:
-          "McDonald's is a global fast food restaurant chain that originated in the United States. It's known for its wide range of fast food items, with its most iconic products being the Big Mac (a double-decker hamburger), the Quarter Pounder, the Egg McMuffin, and its world-famous French fries. McDonald's is also recognized for its Happy Meals, which are targeted towards children and often include a small toy. The company has a distinctive logo, the Golden Arches, and is famous for its efficiency in serving food, utilizing a production line method of food preparation. Over the years, McDonald's has become a symbol of globalization and American fast food culture. It operates thousands of restaurants worldwide, offering a variety of localized menu items in different countries to cater to regional tastes.",
-        error: '',
-      };
-
-      setTimeout(() => {
-        if (data.error === 'Restaurant was not recognized. Please try again.') {
-          setIsError(true);
-        } else {
-          setRestaurantData(data);
-        }
-      }, 1000);
-    };
-
-    fetchData();
-  }, []);
 
   const takePicture = async () => {
     if (cameraRef.current) {
@@ -71,9 +49,45 @@ function App(): JSX.Element {
     setIsError(false);
   };
 
-  const confirmPicture = () => {
-    console.log('Picture confirmed:', capturedUri);
-    setViewRestaurant(true);
+  const confirmPicture = async () => {
+    if (capturedUri) {
+      console.log('Picture confirmed:', capturedUri);
+
+      // Create a new FormData object
+      let formData = new FormData();
+      formData.append('image', {
+        uri:
+          Platform.OS === 'android'
+            ? capturedUri
+            : capturedUri.replace('file://', ''),
+        type: 'image/jpeg', // or the correct type of your image
+        name: 'upload.jpg',
+      });
+
+      try {
+        const response = await fetch('http://10.0.2.2:5000/process_image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (data.error !== 'Restaurant was not recognized. Please try again.') {
+          setRestaurantData(data);
+          setViewRestaurant(true);
+        } else {
+          console.error(
+            'Error in API response:',
+            data.error || 'Unknown error',
+          );
+          setIsError(true);
+        }
+      } catch (error) {
+        console.error('Error making API call:', error);
+        setIsError(true);
+      }
+    } else {
+      console.log('No picture to confirm');
+    }
   };
 
   const openGallery = () => {
