@@ -19,24 +19,30 @@ function App(): JSX.Element {
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
   const [viewRestaurant, setViewRestaurant] = useState(false);
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
+  const [isError, setIsError] = useState(false);
 
-// Define a type for your restaurant data
+
 type RestaurantData = {
   name: string;
   description: string;
 };
 
  useEffect(() => {
-    // Simulate fetching data from a backend
+    setIsError(false); 
+
     const fetchData = async () => {
-      // Simulated data, replace with your backend fetch logic
       const data = {
         name: 'Pasta Paradise',
         description: "McDonald's is a global fast food restaurant chain that originated in the United States. It's known for its wide range of fast food items, with its most iconic products being the Big Mac (a double-decker hamburger), the Quarter Pounder, the Egg McMuffin, and its world-famous French fries. McDonald's is also recognized for its Happy Meals, which are targeted towards children and often include a small toy. The company has a distinctive logo, the Golden Arches, and is famous for its efficiency in serving food, utilizing a production line method of food preparation. Over the years, McDonald's has become a symbol of globalization and American fast food culture. It operates thousands of restaurants worldwide, offering a variety of localized menu items in different countries to cater to regional tastes.",
       };
 
-      // Simulate a network request delay
-      setTimeout(() => setRestaurantData(data), 1000);
+      setTimeout(() => {
+      if (data.Error == 'Restaurant was not recognized. Please try again.') {
+                setIsError(true);
+              } else {
+                setRestaurantData(data);
+              }
+            }, 1000);
     };
 
     fetchData()
@@ -72,6 +78,10 @@ type RestaurantData = {
       console.log('Camera is not ready');
     }
   };
+  const retake = () => {
+    setCapturedUri(null);
+    setIsError(false);
+  };
 
   const retakePicture = () => {
     setCapturedUri(null);
@@ -103,6 +113,18 @@ type RestaurantData = {
       }
     });
   };
+
+    if (isError) {
+        return (
+          <SafeAreaView style={styles.container}>
+            <Text style={styles.errorText}>Error: Unable to load data. Please take the picture again.</Text>
+            {/* Button to retake picture */}
+            <TouchableOpacity onPress={retake} style={styles.retakeButton}>
+              <Text style={styles.buttonText}>Retake</Text>
+            </TouchableOpacity>
+          </SafeAreaView>
+        );
+      }
 
     if (viewRestaurant && restaurantData) {
       return (
@@ -136,7 +158,7 @@ type RestaurantData = {
           <>
             <Image source={{ uri: capturedUri }} style={styles.preview} />
             <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={retakePicture} style={styles.actionButton}>
+              <TouchableOpacity onPress={retake} style={styles.actionButton}>
                 <Text style={styles.buttonText}>Retake</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={confirmPicture} style={styles.actionButton}>
@@ -201,7 +223,7 @@ const styles = StyleSheet.create({
       width: 70,
       height: 70,
       borderRadius: 35,
-      backgroundColor: 'red',
+      backgroundColor: '#9C9492',
       padding: 4,
     },
   captureInner: {
@@ -223,11 +245,20 @@ const styles = StyleSheet.create({
       width: 100,
       height: 40,
       borderRadius: 20,
-      backgroundColor: 'red',
+      backgroundColor: '#9C9492',
       justifyContent: 'center',
       alignItems: 'center',
       marginHorizontal: '7%',
      },
+  retakeButton: {
+        width: 100,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'red',
+        justifyContent: 'center',
+        right: -120,
+        marginHorizontal: '7%',
+       },
   buttonText: {
       fontSize: 16,
       color: 'white',
@@ -238,7 +269,7 @@ const styles = StyleSheet.create({
       width: 100,
       top: '93%',
       right: 150,
-      backgroundColor: 'red',
+      backgroundColor: '#9C9492',
       padding: 10,
       borderRadius: 20,
      },
@@ -274,13 +305,19 @@ const styles = StyleSheet.create({
       resizeMode: 'cover',
   },
   galleryButton: {
-      backgroundColor: 'red',
+      backgroundColor: '#9C9492',
       padding: 10,
       width: 100,
       top: '4%',
       right: -30,
       borderRadius: 20,
   },
+  errorText: {
+      fontSize: 18,
+      color: 'red',
+      textAlign: 'center',
+      margin: 20,
+    },
 
 });
 
