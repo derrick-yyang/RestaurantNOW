@@ -6,7 +6,7 @@ import logging
 app = Flask(__name__)
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 # Function to encode the image
 def encode_image(image):
@@ -22,7 +22,7 @@ def process_image():
         return "No image provided", 400
 
     image = request.files['image']
-    logging.debug("Image received: %s", image.filename)
+    logging.info("Image received: %s", image.filename)
 
     # Encode the image
     base64_image = encode_image(image)
@@ -59,15 +59,25 @@ def process_image():
         max_tokens=150,
     )
 
-    logging.info("Received response from GPT model")
-    name, description = gpt_response.choices[0].message.content.split('?')
+    logging.info("Received response from GPT model: " + gpt_response.choices[0].message.content)
 
-    response = {
-        'Name': name,
-        'Description': description
-    }
+    gpt_response_content = gpt_response.choices[0].message.content.split('?')
+    if len(gpt_response_content) == 2:
+        
+        name, description = gpt_response_content[0], gpt_response_content[1]
 
-    logging.debug("Response prepared: %s", response)
+        response = {
+            'Name': name,
+            'Description': description
+        }
+
+        logging.info("Response prepared: %s", response)
+    else:
+        logging.info("Response was not recognized by GPT")
+        response = {
+            'Error': 'Restaurant was not recognized. Please try again.'
+        }
+
     return jsonify(response)
 
 # Run the server
