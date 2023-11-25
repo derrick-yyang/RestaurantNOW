@@ -67,6 +67,7 @@ function App(): JSX.Element {
   };
   const retake = () => {
     setCapturedUri(undefined);
+    setViewRestaurant(false);
     setIsError(false);
   };
 
@@ -128,8 +129,8 @@ function App(): JSX.Element {
           </View>
         </ScrollView>
 
-        <TouchableOpacity onPress={goBackToCamera} style={styles.backButton}>
-          <Text style={styles.buttonText}>Back</Text>
+        <TouchableOpacity onPress={retake} style={styles.backButton}>
+          <Text style={styles.buttonText}>Back Home</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -256,7 +257,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    width: 100,
+    width: 120,
     top: '93%',
     right: 150,
     backgroundColor: '#9C9492',
