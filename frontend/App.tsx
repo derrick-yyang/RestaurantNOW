@@ -10,8 +10,6 @@ import {
   ScrollView,
 } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {PermissionsAndroid, Platform} from 'react-native';
-import {check, PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 
 function App(): JSX.Element {
   const cameraRef = useRef<RNCamera>(null);
@@ -43,23 +41,6 @@ function App(): JSX.Element {
 
     fetchData();
   }, []);
-
-  const requestStoragePermission = async () => {
-    if (Platform.OS === 'android') {
-      const result = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-      );
-      return result === PermissionsAndroid.RESULTS.GRANTED;
-    } else {
-      const result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
-      if (result === RESULTS.GRANTED) return true;
-      if (result === RESULTS.DENIED) {
-        const requestResult = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
-        return requestResult === RESULTS.GRANTED;
-      }
-      return false;
-    }
-  };
 
   const takePicture = async () => {
     if (cameraRef.current) {
