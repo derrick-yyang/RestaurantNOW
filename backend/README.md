@@ -24,6 +24,8 @@ with open(image_path, 'rb') as image:
     print(response.json())
 ```
 
-Be sure to send an image along with your request
+Be sure to send an image along with your request.
+
+*Note: There is a python script `test_api.py` that you can run to test the endpoint*
 
 
