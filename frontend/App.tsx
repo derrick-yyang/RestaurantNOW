@@ -9,11 +9,14 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
+import {
+  ImageLibraryOptions,
+  launchImageLibrary,
+} from 'react-native-image-picker';
 
 function App(): JSX.Element {
   const cameraRef = useRef<RNCamera>(null);
-  const [capturedUri, setCapturedUri] = useState<string | null>(null);
+  const [capturedUri, setCapturedUri] = useState<string | undefined>(undefined);
   const [viewRestaurant, setViewRestaurant] = useState(false);
   const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(
     null,
@@ -57,7 +60,7 @@ function App(): JSX.Element {
   };
 
   const retakePicture = () => {
-    setCapturedUri(null);
+    setCapturedUri(undefined);
   };
 
   const confirmPicture = () => {
@@ -71,18 +74,21 @@ function App(): JSX.Element {
 
   const openGallery = () => {
     const options = {
-      mediaType: 'photo',
+      mediaType: 'photo', // For photos
       quality: 1,
-    };
+    } as ImageLibraryOptions;
 
     launchImageLibrary(options, response => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.errorCode) {
         console.log('ImagePicker Error: ', response.errorMessage);
-      } else {
+      } else if (response.assets && response.assets.length > 0) {
+        // Check if assets are defined and not empty
         const source = {uri: response.assets[0].uri};
         setCapturedUri(source.uri);
+      } else {
+        console.log('No assets found');
       }
     });
   };
