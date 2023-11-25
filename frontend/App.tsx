@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { RNCamera } from 'react-native-camera';
+import React, {useEffect, useRef, useState} from 'react';
+import {RNCamera} from 'react-native-camera';
 import {
   SafeAreaView,
   TouchableOpacity,
@@ -8,38 +8,40 @@ import {
   StyleSheet,
   Image,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { PermissionsAndroid, Platform } from 'react-native';
-import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {PermissionsAndroid, Platform} from 'react-native';
+import {check, PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 
 function App(): JSX.Element {
   const cameraRef = useRef<RNCamera>(null);
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
   const [viewRestaurant, setViewRestaurant] = useState(false);
-  const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(null);
+  const [restaurantData, setRestaurantData] = useState<RestaurantData | null>(
+    null,
+  );
 
-// Define a type for your restaurant data
-type RestaurantData = {
-  name: string;
-  description: string;
-};
+  // Define a type for your restaurant data
+  type RestaurantData = {
+    name: string;
+    description: string;
+  };
 
- useEffect(() => {
+  useEffect(() => {
     // Simulate fetching data from a backend
     const fetchData = async () => {
       // Simulated data, replace with your backend fetch logic
       const data = {
         name: 'Pasta Paradise',
-        description: "McDonald's is a global fast food restaurant chain that originated in the United States. It's known for its wide range of fast food items, with its most iconic products being the Big Mac (a double-decker hamburger), the Quarter Pounder, the Egg McMuffin, and its world-famous French fries. McDonald's is also recognized for its Happy Meals, which are targeted towards children and often include a small toy. The company has a distinctive logo, the Golden Arches, and is famous for its efficiency in serving food, utilizing a production line method of food preparation. Over the years, McDonald's has become a symbol of globalization and American fast food culture. It operates thousands of restaurants worldwide, offering a variety of localized menu items in different countries to cater to regional tastes.",
+        description:
+          "McDonald's is a global fast food restaurant chain that originated in the United States. It's known for its wide range of fast food items, with its most iconic products being the Big Mac (a double-decker hamburger), the Quarter Pounder, the Egg McMuffin, and its world-famous French fries. McDonald's is also recognized for its Happy Meals, which are targeted towards children and often include a small toy. The company has a distinctive logo, the Golden Arches, and is famous for its efficiency in serving food, utilizing a production line method of food preparation. Over the years, McDonald's has become a symbol of globalization and American fast food culture. It operates thousands of restaurants worldwide, offering a variety of localized menu items in different countries to cater to regional tastes.",
       };
 
       // Simulate a network request delay
       setTimeout(() => setRestaurantData(data), 1000);
     };
 
-    fetchData()
+    fetchData();
   }, []);
 
   const requestStoragePermission = async () => {
@@ -61,12 +63,12 @@ type RestaurantData = {
 
   const takePicture = async () => {
     if (cameraRef.current) {
-      const options = { quality: 0.5, base64: true };
+      const options = {quality: 0.5, base64: true};
       try {
         const data = await cameraRef.current.takePictureAsync(options);
         setCapturedUri(data.uri);
       } catch (error) {
-        console.error("Error taking picture", error);
+        console.error('Error taking picture', error);
       }
     } else {
       console.log('Camera is not ready');
@@ -92,79 +94,83 @@ type RestaurantData = {
       quality: 1,
     };
 
-    launchImageLibrary(options, (response) => {
+    launchImageLibrary(options, response => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.errorCode) {
         console.log('ImagePicker Error: ', response.errorMessage);
       } else {
-        const source = { uri: response.assets[0].uri };
+        const source = {uri: response.assets[0].uri};
         setCapturedUri(source.uri);
       }
     });
   };
 
-    if (viewRestaurant && restaurantData) {
-      return (
-        <SafeAreaView style={styles.container}>
-          <ScrollView style={styles.scrollView}>
-
-            <Image source={{ uri: capturedUri }} style={styles.restaurantImage} />
-
-            <Text style={styles.restaurantName}>{restaurantData.name}</Text>
-            <View style={styles.info}>
-              <Text style={styles.restaurantDetails}>
-                {restaurantData.description}
-              </Text>
-            </View>
-          </ScrollView>
-
-          <TouchableOpacity onPress={goBackToCamera} style={styles.backButton}>
-            <Text style={styles.buttonText}>Back</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-      );
-    }
-
-  return (
+  if (viewRestaurant && restaurantData) {
+    return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Take a picture of the unknown restaurant !!!</Text>
-        </View>
+        <ScrollView style={styles.scrollView}>
+          <Image source={{uri: capturedUri}} style={styles.restaurantImage} />
 
-        {capturedUri ? (
-          <>
-            <Image source={{ uri: capturedUri }} style={styles.preview} />
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={retakePicture} style={styles.actionButton}>
-                <Text style={styles.buttonText}>Retake</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={confirmPicture} style={styles.actionButton}>
-                <Text style={styles.buttonText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        ) : (
-          <>
-            <RNCamera
-              ref={cameraRef}
-              style={styles.preview}
-              type={RNCamera.Constants.Type.back}
-              flashMode={RNCamera.Constants.FlashMode.off}
-              captureAudio={false}
-            />
-            <TouchableOpacity onPress={takePicture} style={styles.capture}>
-              <View style={styles.captureInner} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={openGallery} style={styles.galleryButton}>
-              <Text style={styles.buttonText}>Gallery</Text>
-            </TouchableOpacity>
+          <Text style={styles.restaurantName}>{restaurantData.name}</Text>
+          <View style={styles.info}>
+            <Text style={styles.restaurantDetails}>
+              {restaurantData.description}
+            </Text>
+          </View>
+        </ScrollView>
 
-          </>
-        )}
+        <TouchableOpacity onPress={goBackToCamera} style={styles.backButton}>
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>
+          Take a picture of the unknown restaurant !!!
+        </Text>
+      </View>
+
+      {capturedUri ? (
+        <>
+          <Image source={{uri: capturedUri}} style={styles.preview} />
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={retakePicture}
+              style={styles.actionButton}>
+              <Text style={styles.buttonText}>Retake</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={confirmPicture}
+              style={styles.actionButton}>
+              <Text style={styles.buttonText}>Confirm</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        <>
+          <RNCamera
+            ref={cameraRef}
+            style={styles.preview}
+            type={RNCamera.Constants.Type.back}
+            flashMode={RNCamera.Constants.FlashMode.off}
+            captureAudio={false}
+          />
+          <TouchableOpacity onPress={takePicture} style={styles.capture}>
+            <View style={styles.captureInner} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={openGallery} style={styles.galleryButton}>
+            <Text style={styles.buttonText}>Gallery</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -180,108 +186,107 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 30,
     color: 'black',
-    textAlign:'center',
+    textAlign: 'center',
   },
   preview: {
-      width: '90%',
-      height: '77%',
-      borderRadius: 50,
-      overflow: 'hidden',
-      alignSelf: 'center',
-    },
+    width: '90%',
+    height: '77%',
+    borderRadius: 50,
+    overflow: 'hidden',
+    alignSelf: 'center',
+  },
   capture: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignSelf: 'center',
-      position: 'absolute',
-      bottom: "2%",
-      marginBottom: '0%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    position: 'absolute',
+    bottom: '2%',
+    marginBottom: '0%',
 
-      // Dimensions to create a circular shape for the button
-      width: 70,
-      height: 70,
-      borderRadius: 35,
-      backgroundColor: 'red',
-      padding: 4,
-    },
+    // Dimensions to create a circular shape for the button
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: 'red',
+    padding: 4,
+  },
   captureInner: {
-      width: '100%',
-      height: '100%',
-      borderRadius: 32,
-      backgroundColor: 'white',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
+    width: '100%',
+    height: '100%',
+    borderRadius: 32,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      alignSelf: 'center',
-      margin: '7%',
-     },
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    margin: '7%',
+  },
   actionButton: {
-      width: 100,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: 'red',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginHorizontal: '7%',
-     },
+    width: 100,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: '7%',
+  },
   buttonText: {
-      fontSize: 16,
-      color: 'white',
-      textAlign: 'center',
-     },
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'center',
+  },
   backButton: {
-      position: 'absolute',
-      width: 100,
-      top: '93%',
-      right: 150,
-      backgroundColor: 'red',
-      padding: 10,
-      borderRadius: 20,
-     },
+    position: 'absolute',
+    width: 100,
+    top: '93%',
+    right: 150,
+    backgroundColor: 'red',
+    padding: 10,
+    borderRadius: 20,
+  },
   scrollView: {
-      marginBottom: 60,
-     },
+    marginBottom: 60,
+  },
   restaurantInfo: {
-      padding: 20,
-     },
+    padding: 20,
+  },
   restaurantName: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginBottom: 8,
-      color: 'black',
-     },
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: 'black',
+  },
   restaurantDetails: {
-      fontSize: 18,
-      color: 'black',
-     },
+    fontSize: 18,
+    color: 'black',
+  },
   info: {
-      marginTop: 10,
-      padding: 10,
-      backgroundColor: '#f0f0f0',
-      borderRadius: 10,
-     },
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+  },
   reviewerName: {
-      fontWeight: 'bold',
-      color: 'black',
-     },
+    fontWeight: 'bold',
+    color: 'black',
+  },
   restaurantImage: {
-      width: '100%',
-      height: 300,
-      resizeMode: 'cover',
+    width: '100%',
+    height: 300,
+    resizeMode: 'cover',
   },
   galleryButton: {
-      backgroundColor: 'red',
-      padding: 10,
-      width: 100,
-      top: '4%',
-      right: -30,
-      borderRadius: 20,
+    backgroundColor: 'red',
+    padding: 10,
+    width: 100,
+    top: '4%',
+    right: -30,
+    borderRadius: 20,
   },
-
 });
 
 export default App;
