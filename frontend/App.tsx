@@ -126,7 +126,6 @@ type RestaurantData = {
       );
     }
 
-
   return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
@@ -166,7 +165,6 @@ type RestaurantData = {
       </SafeAreaView>
     );
   }
-
 
 const styles = StyleSheet.create({
   container: {
