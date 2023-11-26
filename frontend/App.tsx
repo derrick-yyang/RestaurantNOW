@@ -114,6 +114,7 @@ function App(): JSX.Element {
   if (isError) {
     return (
       <SafeAreaView style={styles.container}>
+        <Image source={{uri: capturedUri}} style={styles.restaurantImage} />
         <Text style={styles.errorText}>
           Error: Unable to load data. Please take the picture again.
         </Text>
